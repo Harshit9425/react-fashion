@@ -1,0 +1,764 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { ShoppingBag, User, Search, Menu, X, ArrowRight, Check, Sparkles, Loader2, AlertCircle, Mail, MapPin, Phone, LogOut, ChevronDown, ChevronUp } from 'lucide-react';
+
+// --- DATA: Premium Fashion Products ---
+const PRODUCTS = [
+  { id: 1, name: "Silk Charmeuse Evening Gown", price: 2499, category: "Dresses", image: "https://images.unsplash.com/photo-1539008835657-9e8e9680c956?auto=format&fit=crop&q=80&w=800", featured: true },
+  { id: 2, name: "Tailored Wool Blazer", price: 1899, category: "Outerwear", image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&q=80&w=800" },
+  { id: 3, name: "Minimalist Cotton Tee", price: 499, category: "Basics", image: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&q=80&w=800" },
+  { id: 4, name: "High-Waisted Trousers", price: 999, category: "Bottoms", image: "https://images.unsplash.com/photo-1550639525-c97d455acf70?auto=format&fit=crop&q=80&w=800" },
+  { id: 5, name: "Leather Crossbody Bag", price: 1299, category: "Accessories", image: "https://images.unsplash.com/photo-1591561954557-26941169b49e?auto=format&fit=crop&q=80&w=800" },
+  { id: 6, name: "Cashmere Turtleneck", price: 1199, category: "Knitwear", image: "https://images.unsplash.com/photo-1584273143981-41c073dfe8f8?auto=format&fit=crop&q=80&w=800" },
+  { id: 7, name: "Pleated Midi Skirt", price: 899, category: "Bottoms", image: "https://images.unsplash.com/photo-1551163943-3f6a855d1153?auto=format&fit=crop&q=80&w=800" },
+  { id: 8, name: "Oversized Trench Coat", price: 2999, category: "Outerwear", image: "https://images.unsplash.com/photo-1539533018447-63fcce2678e3?auto=format&fit=crop&q=80&w=800" },
+  { id: 9, name: "Suede Ankle Boots", price: 1999, category: "Shoes", image: "https://images.unsplash.com/photo-1618932260643-eee4a2f652a6?auto=format&fit=crop&q=80&w=800" },
+  { id: 10, name: "Chunky Knit Sweater", price: 1099, category: "Knitwear", image: "https://images.unsplash.com/photo-1574291814206-363acdf2aa79?auto=format&fit=crop&q=80&w=800" },
+  { id: 11, name: "Mulberry Silk Scarf", price: 399, category: "Accessories", image: "https://images.unsplash.com/photo-1485230405346-71acb9518d9c?auto=format&fit=crop&q=80&w=800" },
+  { id: 12, name: "Classic Straight Leg Jeans", price: 1199, category: "Denim", image: "https://images.unsplash.com/photo-1542272604-787c3835535d?auto=format&fit=crop&q=80&w=800" },
+  { id: 13, name: "Vintage Wash Wide Leg Jeans", price: 1299, category: "Denim", image: "https://images.unsplash.com/photo-1582552938357-32b906df40cb?auto=format&fit=crop&q=80&w=800" },
+  { id: 14, name: "Motorcycle Leather Jacket", price: 3499, category: "Outerwear", image: "https://images.unsplash.com/photo-1559551409-dadc959f76b8?auto=format&fit=crop&q=80&w=800" },
+  { id: 16, name: "Oversized Acetate Sunglasses", price: 599, category: "Accessories", image: "https://images.unsplash.com/photo-1511499767150-a48a237f0083?auto=format&fit=crop&q=80&w=800" },
+  { id: 17, name: "Classic Leather Loafers", price: 1499, category: "Shoes", image: "https://images.unsplash.com/photo-1608256246200-53e635b5b65f?auto=format&fit=crop&q=80&w=800" },
+  { id: 18, name: "Ribbed Cashmere Cardigan", price: 1299, category: "Knitwear", image: "https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?auto=format&fit=crop&q=80&w=800" },
+  { id: 19, name: "Satin Camisole", price: 499, category: "Basics", image: "https://images.unsplash.com/photo-1532453288672-3a27e9be9efd?auto=format&fit=crop&q=80&w=800" },
+  { id: 20, name: "Bermuda Tailored Shorts", price: 699, category: "Bottoms", image: "https://images.unsplash.com/photo-1591195853828-11db59a44f6b?auto=format&fit=crop&q=80&w=800" },
+  { id: 21, name: "Chunky Gold Link Bracelet", price: 299, category: "Accessories", image: "https://images.unsplash.com/photo-1611591437281-460bfbe1220a?auto=format&fit=crop&q=80&w=800" },
+  { id: 22, name: "Minimalist White Sneakers", price: 1499, category: "Shoes", image: "https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?auto=format&fit=crop&q=80&w=800" },
+  { id: 23, name: "Structured Tote Bag", price: 1799, category: "Accessories", image: "https://images.unsplash.com/photo-1584916201218-f4242ceb4809?auto=format&fit=crop&q=80&w=800" },
+];
+
+const IMAGE_FALLBACK = "https://images.unsplash.com/photo-1595777457583-95e059f58196?auto=format&fit=crop&q=80&w=800";
+
+export default function App() {
+  const [currentView, setCurrentView] = useState('login');
+  const [loggedInUser, setLoggedInUser] = useState(null);
+  const [cart, setCart] = useState([]);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isStylistOpen, setIsStylistOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [toast, setToast] = useState(null);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  const showToast = (message) => {
+    setToast(message);
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  useEffect(() => {
+    const handleScroll = () => setIsScrolled(window.scrollY > 50);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.innerHTML = `
+      @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600&display=swap');
+      body { font-family: 'Inter', sans-serif; background-color: #fbfbfb; color: #111; margin: 0; padding: 0; overflow-x: hidden; }
+      h1, h2, h3, h4, .serif { font-family: 'Playfair Display', serif; }
+      .hide-scrollbar::-webkit-scrollbar { display: none; }
+      .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      
+      @keyframes navReveal {
+        0% { transform: translateY(-100%); opacity: 0; }
+        100% { transform: translateY(0); opacity: 1; }
+      }
+      
+      @keyframes linkFadeIn {
+        0% { transform: translateY(-10px); opacity: 0; }
+        100% { transform: translateY(0); opacity: 1; }
+      }
+
+      .nav-reveal { animation: navReveal 1s cubic-bezier(0.2, 1, 0.2, 1) both; }
+      .stagger-link { animation: linkFadeIn 0.8s cubic-bezier(0.2, 1, 0.2, 1) both; }
+      .stagger-1 { animation-delay: 0.3s; }
+      .stagger-2 { animation-delay: 0.4s; }
+      .stagger-3 { animation-delay: 0.5s; }
+      .stagger-4 { animation-delay: 0.6s; }
+      .stagger-5 { animation-delay: 0.7s; }
+      
+      .f-stagger-1 { animation-delay: 0.2s; }
+      .f-stagger-2 { animation-delay: 0.3s; }
+      .f-stagger-3 { animation-delay: 0.4s; }
+      .f-stagger-4 { animation-delay: 0.5s; }
+
+      @keyframes formSlideUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      .form-reveal { animation: formSlideUp 1.2s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+      @keyframes kenBurns {
+        from { transform: scale(1); }
+        to { transform: scale(1.15); }
+      }
+      .img-zoom { animation: kenBurns 20s ease-out forwards; }
+
+      .link-underline {
+        position: relative;
+        display: inline-block;
+      }
+      .link-underline::after {
+        content: '';
+        position: absolute;
+        width: 100%;
+        height: 1px;
+        bottom: -2px;
+        left: 0;
+        background-color: currentColor;
+        transform: scaleX(0);
+        transform-origin: bottom right;
+        transition: transform 0.4s cubic-bezier(0.65, 0, 0.35, 1);
+      }
+      .link-underline:hover::after {
+        transform: scaleX(1);
+        transform-origin: bottom left;
+      }
+
+      .mobile-link-reveal {
+        opacity: 0;
+        transform: translateY(20px);
+        transition: all 0.6s cubic-bezier(0.2, 1, 0.2, 1);
+      }
+      .mobile-open .mobile-link-reveal {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .product-card:hover .product-img { transform: scale(1.05); }
+      .product-img { transition: transform 0.8s cubic-bezier(0.2, 1, 0.2, 1); }
+      
+      .marquee-container { overflow: hidden; white-space: nowrap; width: 100%; background: #111; color: white; padding: 10px 0; }
+      .marquee-content { display: inline-block; animation: marquee 20s linear infinite; font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase; }
+      @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+    `;
+    document.head.appendChild(style);
+    return () => document.head.removeChild(style);
+  }, []);
+
+  const addToCart = (product) => {
+    setCart([...cart, product]);
+    setIsCartOpen(true);
+    showToast(`${product.name} added to cart.`);
+  };
+
+  const removeFromCart = (index) => {
+    const newCart = [...cart];
+    newCart.splice(index, 1);
+    setCart(newCart);
+  };
+
+  const handleLogout = () => {
+    setCart([]);
+    setLoggedInUser(null);
+    showToast('Securely logged out of the Atelier.');
+    setCurrentView('login');
+  };
+
+  return (
+    <div className="min-h-screen relative text-black">
+      {currentView !== 'login' && (
+        <nav className={`fixed w-full z-50 transition-all duration-1000 ease-in-out nav-reveal ${isScrolled ? 'bg-white/95 backdrop-blur-lg shadow-sm py-3' : 'bg-transparent py-7'} text-${isScrolled ? 'black' : 'white'}`}>
+          <div className="max-w-7xl mx-auto px-8 flex items-center justify-between w-full">
+            <div className="flex-1 flex items-center justify-start">
+              <div className="hidden lg:flex gap-10 items-center">
+                <button onClick={() => setCurrentView('shop')} className="stagger-link stagger-1 link-underline text-[10px] font-medium tracking-[0.2em] uppercase">Shop</button>
+                <button onClick={() => setCurrentView('collections')} className="stagger-link stagger-2 link-underline text-[10px] font-medium tracking-[0.2em] uppercase">Collections</button>
+                <button onClick={() => setCurrentView('editorial')} className="stagger-link stagger-3 link-underline text-[10px] font-medium tracking-[0.2em] uppercase">Editorial</button>
+                <button onClick={() => setCurrentView('faq')} className="stagger-link stagger-4 link-underline text-[10px] font-medium tracking-[0.2em] uppercase">FAQ</button>
+                <button onClick={() => setCurrentView('contact')} className="stagger-link stagger-5 link-underline text-[10px] font-medium tracking-[0.2em] uppercase">Contact</button>
+              </div>
+              <Menu className="lg:hidden w-5 h-5 cursor-pointer hover:scale-110 transition-transform stagger-link stagger-1" onClick={() => setIsMobileMenuOpen(true)} />
+            </div>
+
+            <div className="flex-1 flex items-center justify-center cursor-pointer stagger-link" onClick={() => setCurrentView('home')}>
+              <h1 className="text-xl md:text-2xl font-semibold tracking-[0.3em] pl-[0.3em] serif uppercase whitespace-nowrap transition-all duration-700 hover:tracking-[0.4em] group">
+                Vanguard Fashion
+              </h1>
+            </div>
+
+            <div className="flex-1 flex gap-6 items-center justify-end">
+              <div className="stagger-link stagger-1 hidden sm:block">
+                <Search className="w-4 h-4 cursor-pointer hover:scale-110 transition-transform opacity-70 hover:opacity-100" onClick={() => setIsSearchOpen(true)} />
+              </div>
+              <div className="stagger-link stagger-2">
+                <Sparkles className="w-4 h-4 cursor-pointer hover:text-amber-500 hover:scale-110 transition-all opacity-70 hover:opacity-100" onClick={() => setIsStylistOpen(true)} />
+              </div>
+              <div className="stagger-link stagger-3">
+                <User className="w-4 h-4 cursor-pointer hover:scale-110 transition-transform opacity-70 hover:opacity-100" onClick={() => setCurrentView('profile')} />
+              </div>
+              <div className="stagger-link stagger-4">
+                <LogOut className="w-4 h-4 cursor-pointer hover:scale-110 transition-transform opacity-70 hover:opacity-100 hover:text-red-400" onClick={handleLogout} />
+              </div>
+              <div className="relative cursor-pointer group stagger-link stagger-5" onClick={() => setIsCartOpen(true)}>
+                <ShoppingBag className="w-4 h-4 group-hover:scale-110 transition-transform opacity-70 group-hover:opacity-100" />
+                {cart.length > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 bg-black text-white text-[8px] w-3.5 h-3.5 rounded-full flex items-center justify-center animate-bounce shadow-sm">
+                    {cart.length}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+        </nav>
+      )}
+
+      <main className="transition-opacity duration-700">
+        {currentView === 'login' && <LoginPage setCurrentView={setCurrentView} showToast={showToast} setLoggedInUser={setLoggedInUser} />}
+        {currentView === 'home' && <HomePage addToCart={addToCart} setCurrentView={setCurrentView} showToast={showToast} setIsStylistOpen={setIsStylistOpen} />}
+        {currentView === 'shop' && <ShopPage addToCart={addToCart} />}
+        {currentView === 'collections' && <CollectionsPage addToCart={addToCart} />}
+        {currentView === 'editorial' && <PlaceholderPage title="Editorial" desc="Immerse yourself in the Vanguard Fashion vision." />}
+        {currentView === 'faq' && <FAQPage setCurrentView={setCurrentView} />}
+        {currentView === 'contact' && <ContactPage showToast={showToast} />}
+        {currentView === 'profile' && <ProfilePage user={loggedInUser} handleLogout={handleLogout} setCurrentView={setCurrentView} />}
+      </main>
+
+      {currentView !== 'login' && (
+        <footer className="bg-white pt-28 pb-12 px-8 border-t border-gray-100 text-black">
+          <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-16">
+            <div className="md:col-span-2">
+              <h2 className="text-2xl serif tracking-[0.3em] uppercase mb-8">Vanguard Fashion</h2>
+              <p className="text-gray-400 text-sm max-w-sm mb-8 leading-relaxed font-light">
+                Redefining modern elegance. We craft pieces that transcend seasons, focusing on uncompromising quality and timeless silhouettes.
+              </p>
+              <div className="flex gap-4">
+                <input type="email" placeholder="Join our atelier" className="border-b border-gray-200 py-2 outline-none text-xs w-64 bg-transparent focus:border-black transition-colors" />
+                <button onClick={() => showToast('Inscribed.')} className="text-[10px] uppercase tracking-widest font-medium hover:opacity-50 transition-opacity">Submit</button>
+              </div>
+            </div>
+            <div className="space-y-6">
+              <h3 className="text-[10px] font-semibold uppercase tracking-[0.2em] text-gray-300">Customer Care</h3>
+              <ul className="space-y-4 text-xs font-light">
+                <li><button onClick={() => setCurrentView('faq')} className="hover:opacity-50 transition-opacity">FAQ</button></li>
+                <li><button onClick={() => setCurrentView('contact')} className="hover:opacity-50 transition-opacity">Contact Us</button></li>
+                <li><button onClick={() => showToast('Logistics info.')} className="hover:opacity-50 transition-opacity">Shipping & Returns</button></li>
+              </ul>
+            </div>
+            <div className="space-y-6">
+              <h3 className="text-[10px] font-semibold uppercase tracking-[0.2em] text-gray-300">Legal</h3>
+              <ul className="space-y-4 text-xs font-light">
+                <li><button onClick={() => showToast('Terms displayed.')} className="hover:opacity-50 transition-opacity">Privacy Policy</button></li>
+                <li><button onClick={() => showToast('Cookies menu.')} className="hover:opacity-50 transition-opacity">Cookies</button></li>
+              </ul>
+            </div>
+          </div>
+          <div className="max-w-7xl mx-auto mt-24 text-center text-[9px] text-gray-300 uppercase tracking-[0.3em] font-light">
+            © 2026 Vanguard Fashion Paris. All rights reserved.
+          </div>
+        </footer>
+      )}
+
+      <MobileMenu isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} setCurrentView={setCurrentView} setIsStylistOpen={setIsStylistOpen} handleLogout={handleLogout} />
+      <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} cart={cart} removeFromCart={removeFromCart} showToast={showToast} />
+      <AIStylistModal isOpen={isStylistOpen} onClose={() => setIsStylistOpen(false)} addToCart={addToCart} />
+      <SearchOverlay isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} addToCart={addToCart} />
+
+      <div className={`fixed bottom-8 right-8 bg-black text-white px-8 py-4 flex items-center gap-4 z-[100] transform transition-all duration-500 shadow-2xl ${toast ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0 pointer-events-none'}`}>
+        <Check className="w-4 h-4 text-green-400" />
+        <span className="text-[10px] uppercase tracking-[0.1em] font-medium">{toast}</span>
+      </div>
+    </div>
+  );
+}
+
+function LoginPage({ setCurrentView, showToast, setLoggedInUser }) {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleLogin = (e) => {
+    e.preventDefault();
+    setError(null);
+    setIsLoading(true);
+
+    setTimeout(() => {
+      if (username.trim() && password === 'Test@123') {
+        setLoggedInUser(username);
+        showToast('Welcome back to the Atelier.');
+        setCurrentView('home');
+      } else {
+        setError('Invalid identifier or security code.');
+      }
+      setIsLoading(false);
+    }, 1200);
+  };
+
+  return (
+    <div className="min-h-screen relative flex items-center justify-center lg:justify-end bg-black text-white overflow-hidden p-6 lg:p-24">
+      <div className="absolute inset-0 z-0 overflow-hidden">
+        <img 
+          src="https://images.unsplash.com/photo-1605280263929-1c42c62ef169?auto=format&fit=crop&q=80&w=2500" 
+          className="w-full h-full object-cover opacity-40 scale-105 img-zoom grayscale-[50%]" 
+          alt="Creative Fashion Background" 
+        />
+        <div className="absolute top-[-20%] left-[-10%] w-[60vw] h-[60vw] rounded-full bg-amber-700/20 blur-[120px] mix-blend-screen animate-pulse"></div>
+        <div className="absolute bottom-[-20%] right-[10%] w-[50vw] h-[50vw] rounded-full bg-indigo-900/30 blur-[120px] mix-blend-screen animate-pulse" style={{ animationDelay: '1s' }}></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-black/95 via-black/50 to-black/90 backdrop-blur-[2px]"></div>
+      </div>
+
+      <ThreeDBackground />
+
+      <div className="absolute bottom-24 left-12 lg:left-24 z-10 hidden md:block animate-in slide-in-from-bottom-12 duration-[1.5s] ease-out pointer-events-none">
+        <h1 className="text-white text-6xl lg:text-8xl serif tracking-[0.15em] uppercase mb-4 transition-all hover:tracking-[0.25em] duration-700 drop-shadow-2xl">
+          Vanguard Fashion
+        </h1>
+        <p className="text-white/70 text-[10px] lg:text-xs tracking-[0.6em] uppercase font-light border-l border-amber-500/50 pl-6 drop-shadow-lg">
+          The Private Collection Portal
+        </p>
+      </div>
+
+      <div className="w-full max-w-md relative z-10 backdrop-blur-2xl bg-black/40 border border-white/10 p-10 lg:p-16 shadow-[0_0_50px_rgba(0,0,0,0.8)] animate-in slide-in-from-right-12 duration-1000 group/form rounded-sm">
+        <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover/form:opacity-100 transition-opacity duration-1000 pointer-events-none rounded-sm"></div>
+
+        <div className="mb-16 form-reveal relative z-10">
+          <h2 className="text-[9px] font-bold tracking-[0.5em] uppercase text-amber-500/80 mb-4 animate-pulse">Member Authentication</h2>
+          <h3 className="text-4xl lg:text-5xl serif tracking-tight text-white drop-shadow-md">Sign In</h3>
+        </div>
+
+        <form onSubmit={handleLogin} className="space-y-12 relative z-10">
+          <div className="group space-y-2 form-reveal f-stagger-1">
+            <label className="text-[9px] uppercase tracking-[0.4em] text-zinc-400 group-focus-within:text-white transition-colors duration-500">Member Key</label>
+            <input 
+              type="text" 
+              placeholder="Identifier" 
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className="w-full border-b border-white/20 py-4 outline-none focus:border-white transition-all bg-transparent text-lg font-light placeholder:opacity-20 text-white" 
+              required 
+            />
+          </div>
+          
+          <div className="group space-y-2 form-reveal f-stagger-2">
+            <label className="text-[9px] uppercase tracking-[0.4em] text-zinc-400 group-focus-within:text-white transition-colors duration-500">Security Code</label>
+            <input 
+              type="password" 
+              placeholder="••••••••" 
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full border-b border-white/20 py-4 outline-none focus:border-white transition-all bg-transparent text-lg font-light placeholder:opacity-20 text-white" 
+              required 
+            />
+          </div>
+
+          {error && (
+            <div className="flex items-center gap-3 text-red-400 animate-in shake duration-500 p-3 bg-red-950/30 border-l-2 border-red-500 backdrop-blur-sm">
+              <AlertCircle className="w-4 h-4" />
+              <p className="text-[10px] uppercase tracking-widest font-bold">{error}</p>
+            </div>
+          )}
+
+          <div className="pt-6 form-reveal f-stagger-3">
+            <button 
+              type="submit" 
+              disabled={isLoading}
+              className="w-full bg-white text-black py-6 uppercase text-[10px] tracking-[0.5em] font-bold hover:bg-zinc-200 transition-all flex items-center justify-center gap-4 group disabled:opacity-30 shadow-2xl relative overflow-hidden"
+            >
+              {isLoading ? <Loader2 className="animate-spin w-4 h-4" /> : (
+                <>
+                  <span className="relative z-10">Submit</span>
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-3 transition-transform duration-700 relative z-10" />
+                </>
+              )}
+              <div className="absolute inset-0 bg-black/5 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out"></div>
+            </button>
+          </div>
+        </form>
+
+        <div className="mt-16 text-center form-reveal f-stagger-4 relative z-10">
+          <button className="text-[9px] uppercase tracking-[0.4em] text-zinc-500 hover:text-white transition-all duration-700 border-b border-transparent hover:border-white pb-1">
+            Apply for Private Access
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ProfilePage({ user, handleLogout, setCurrentView }) {
+  return (
+    <div className="min-h-screen pt-40 pb-24 px-8 max-w-5xl mx-auto animate-in fade-in duration-1000 text-black">
+      <div className="mb-16 border-b border-gray-100 pb-12 flex flex-col md:flex-row md:items-end justify-between gap-8">
+        <div>
+          <h2 className="text-[10px] font-bold uppercase tracking-[0.5em] text-gray-400 mb-4">Private Client</h2>
+          <h1 className="text-5xl md:text-7xl serif tracking-tight">Member Details</h1>
+        </div>
+        <button onClick={handleLogout} className="text-[10px] uppercase tracking-[0.3em] font-bold text-red-500 hover:opacity-50 transition-opacity flex items-center gap-2">
+          <LogOut className="w-4 h-4" /> Secure Logout
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-16">
+        <div className="md:col-span-1 space-y-12">
+          <div>
+            <h3 className="text-[9px] font-bold uppercase tracking-[0.4em] text-gray-400 mb-6">Client Details</h3>
+            <div className="space-y-6">
+              <div>
+                <p className="text-[9px] uppercase tracking-[0.2em] text-gray-400 mb-1">Identifier</p>
+                <p className="text-sm font-medium">{user || 'Guest Access'}</p>
+              </div>
+              <div>
+                <p className="text-[9px] uppercase tracking-[0.2em] text-gray-400 mb-1">Tier</p>
+                <p className="text-sm font-medium flex items-center gap-2"><Sparkles className="w-3 h-3 text-amber-500" /> Vanguard VIP</p>
+              </div>
+              <div>
+                <p className="text-[9px] uppercase tracking-[0.2em] text-gray-400 mb-1">Member Since</p>
+                <p className="text-sm font-medium">March 2026</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="md:col-span-2 space-y-12">
+          <div>
+            <h3 className="text-[9px] font-bold uppercase tracking-[0.4em] text-gray-400 mb-6">Recent Acquisitions</h3>
+            <div className="bg-zinc-50 p-16 text-center shadow-sm flex flex-col items-center justify-center border border-zinc-100">
+              <ShoppingBag className="w-8 h-8 mx-auto stroke-[1px] text-gray-300 mb-4" />
+              <p className="text-[10px] uppercase tracking-[0.3em] text-gray-500 mb-6">No recent orders found</p>
+              <button onClick={() => setCurrentView('shop')} className="text-[9px] uppercase tracking-[0.2em] border-b border-black pb-1 hover:opacity-50 transition-opacity font-bold">Explore Collection</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FAQPage({ setCurrentView }) {
+  const faqs = [
+    { q: "What is your return policy?", a: "We offer complimentary returns within 14 days of delivery for unworn, unaltered items with original tags attached." },
+    { q: "How long does shipping take?", a: "Standard domestic shipping takes 3-5 business days. Express shipping is available at checkout for 1-2 business day delivery." },
+    { q: "Do you ship internationally?", a: "Yes, Vanguard Fashion ships globally. International delivery typically takes 5-10 business days depending on the destination." },
+    { q: "How can I track my order?", a: "Once your order is dispatched, you will receive a tracking link via email. You can also view order status in your Member Details." },
+    { q: "Are your products authentic?", a: "Every piece is crafted in our Parisian atelier and comes with a digital certificate of authenticity verified via blockchain." }
+  ];
+  const [openIdx, setOpenIdx] = useState(null);
+
+  return (
+    <div className="min-h-screen pt-40 pb-24 px-8 max-w-4xl mx-auto animate-in fade-in duration-1000 text-black">
+      <div className="mb-20 text-center">
+        <h1 className="text-5xl md:text-7xl serif mb-6 tracking-tight">FAQ</h1>
+        <p className="text-gray-400 text-sm tracking-widest font-light italic">Frequently asked questions regarding our services.</p>
+      </div>
+      
+      <div className="space-y-6">
+        {faqs.map((faq, idx) => (
+          <div key={idx} className="border-b border-gray-100 pb-6">
+            <button 
+              onClick={() => setOpenIdx(openIdx === idx ? null : idx)} 
+              className="w-full flex justify-between items-center text-left focus:outline-none group"
+            >
+              <span className="text-sm font-medium tracking-wide group-hover:text-gray-500 transition-colors">{faq.q}</span>
+              {openIdx === idx ? <ChevronUp className="w-4 h-4 text-gray-400" /> : <ChevronDown className="w-4 h-4 text-gray-400" />}
+            </button>
+            <div className={`overflow-hidden transition-all duration-500 ease-in-out ${openIdx === idx ? 'max-h-40 opacity-100 mt-6' : 'max-h-0 opacity-0'}`}>
+              <p className="text-sm text-gray-500 font-light leading-relaxed pr-8">{faq.a}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-24 text-center">
+        <p className="text-[10px] uppercase tracking-[0.3em] text-gray-400 mb-6 font-bold">Still require assistance?</p>
+        <button onClick={() => setCurrentView('contact')} className="text-[10px] uppercase tracking-[0.2em] border-b border-black pb-1 hover:opacity-50 transition-opacity font-bold">Contact the Atelier</button>
+      </div>
+    </div>
+  );
+}
+
+function HomePage({ addToCart, setCurrentView, setIsStylistOpen }) {
+  return (
+    <div className="animate-in fade-in duration-1000">
+      <div className="relative h-screen w-full bg-black flex items-center justify-center overflow-hidden">
+        <ThreeDBackground />
+        <div className="absolute inset-0 bg-black/40 pointer-events-none z-10"></div>
+        <div className="relative z-20 text-center text-white px-4">
+          <h1 className="text-6xl md:text-8xl lg:text-9xl serif mb-10 tracking-wider animate-in slide-in-from-bottom-12 duration-1000 delay-200 fill-mode-both leading-tight">Elegance in Every Thread</h1>
+          <button onClick={() => setIsStylistOpen(true)} className="bg-white text-black px-10 py-5 text-[10px] uppercase tracking-[0.4em] font-bold hover:bg-zinc-200 transition-all duration-500 flex items-center gap-3 mx-auto animate-in fade-in duration-1000 delay-1000 fill-mode-both shadow-2xl group">
+            <Sparkles className="w-4 h-4 text-amber-500 group-hover:rotate-12 transition-transform" /> Consult AI Stylist
+          </button>
+        </div>
+      </div>
+      <div className="max-w-7xl mx-auto px-8 py-32">
+        <div className="flex justify-between items-end mb-20 text-black">
+          <div>
+            <h2 className="text-4xl md:text-5xl serif mb-4 tracking-tight">Curated Selection</h2>
+            <p className="text-gray-400 text-sm font-light tracking-wide italic font-serif">Elevate your everyday wardrobe with our finest silhouettes.</p>
+          </div>
+          <button onClick={() => setCurrentView('shop')} className="hidden md:flex items-center gap-3 text-[10px] uppercase tracking-[0.3em] border-b border-black pb-2 hover:opacity-40 transition-opacity font-bold">View All</button>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-10 gap-y-20">
+          {PRODUCTS.slice(0, 5).map((product, index) => <ProductCard key={product.id} product={product} addToCart={addToCart} isFeatured={index === 0} />)}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ProductCard({ product, addToCart, isFeatured }) {
+  const [imgSrc, setImgSrc] = useState(product.image);
+  const handleImageError = () => { if (imgSrc !== IMAGE_FALLBACK) setImgSrc(IMAGE_FALLBACK); };
+  return (
+    <div className={`product-card group cursor-pointer ${isFeatured ? 'md:col-span-2 lg:col-span-2 row-span-2' : ''}`}>
+      <div className="relative overflow-hidden bg-zinc-50 mb-6 aspect-[3/4] shadow-sm">
+        <img src={imgSrc} alt={product.name} className="w-full h-full object-cover product-img grayscale-[30%] group-hover:grayscale-0" onError={handleImageError} />
+        <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+        <div className="absolute bottom-0 left-0 w-full p-6 translate-y-full group-hover:translate-y-0 transition-transform duration-700 ease-out z-10">
+          <button onClick={(e) => { e.stopPropagation(); addToCart(product); }} className="w-full bg-white text-black py-5 uppercase text-[9px] tracking-[0.4em] font-bold shadow-2xl hover:bg-black hover:text-white transition-all duration-500 transform active:scale-95">Quick Add</button>
+        </div>
+      </div>
+      <div className="flex justify-between items-start text-black">
+        <div className="max-w-[80%]">
+          <span className="text-[9px] text-gray-300 font-bold uppercase tracking-[0.2em] block mb-2">{product.category}</span>
+          <h3 className="text-sm font-medium tracking-tight group-hover:text-gray-400 transition-colors leading-tight">{product.name}</h3>
+        </div>
+        <span className="text-xs font-semibold tabular-nums">₹{product.price.toLocaleString('en-IN')}</span>
+      </div>
+    </div>
+  );
+}
+
+function ShopPage({ addToCart }) {
+  return (
+    <div className="pt-40 pb-24 px-8 max-w-7xl mx-auto min-h-screen animate-in fade-in duration-1000 text-black">
+      <div className="mb-20 text-center">
+        <h1 className="text-5xl md:text-7xl serif mb-6 tracking-tight">Shop All</h1>
+        <p className="text-gray-400 text-sm tracking-widest font-light italic">The complete archive.</p>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-x-8 gap-y-20">{PRODUCTS.map((p) => <ProductCard key={p.id} product={p} addToCart={addToCart} />)}</div>
+    </div>
+  );
+}
+
+function CollectionsPage({ addToCart }) {
+  const categories = [...new Set(PRODUCTS.map(p => p.category))];
+  return (
+    <div className="pt-40 pb-24 px-8 max-w-7xl mx-auto min-h-screen animate-in fade-in duration-1000 text-black">
+      <div className="mb-24"><h1 className="text-5xl md:text-7xl serif tracking-tight">Collections</h1></div>
+      {categories.map((category) => (
+        <div key={category} className="mb-32">
+          <h2 className="text-xl serif tracking-[0.4em] uppercase border-b border-gray-100 pb-6 mb-12 flex justify-between items-center">{category}<span className="text-[10px] text-gray-300 font-bold font-sans">{PRODUCTS.filter(p => p.category === category).length} Pieces</span></h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-x-8 gap-y-20">{PRODUCTS.filter(p => p.category === category).map(p => <ProductCard key={p.id} product={p} addToCart={addToCart} />)}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function ContactPage({ showToast }) {
+  const [formData, setFormData] = useState({ name: '', email: '', message: '' });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const handleSubmit = (e) => { e.preventDefault(); setIsSubmitting(true); setTimeout(() => { showToast('Message received.'); setFormData({ name: '', email: '', message: '' }); setIsSubmitting(false); }, 1200); };
+  return (
+    <div className="min-h-screen pt-40 pb-24 flex flex-col items-center bg-white text-black animate-in fade-in duration-1000 px-8">
+      <div className="max-w-7xl w-full grid grid-cols-1 lg:grid-cols-2 gap-20">
+        <div className="space-y-12">
+          <h1 className="text-7xl serif tracking-tighter">Contact</h1>
+          <div className="space-y-8 pt-8 border-t border-gray-100">
+            <div><h3 className="text-[10px] font-bold uppercase tracking-[0.4em] text-gray-300 mb-2">Headquarters</h3><p className="text-sm font-light">24 Avenue Montaigne, Paris</p></div>
+            <div><h3 className="text-[10px] font-bold uppercase tracking-[0.4em] text-gray-300 mb-2">Inquiries</h3><p className="text-sm font-light">atelier@vanguardfashion.com</p></div>
+            <div><h3 className="text-[10px] font-bold uppercase tracking-[0.4em] text-gray-300 mb-2">Telephone</h3><p className="text-sm font-light">9425039077</p></div>
+          </div>
+        </div>
+        <div className="bg-zinc-50 p-12 shadow-sm">
+          <form onSubmit={handleSubmit} className="space-y-10">
+            <input type="text" placeholder="Name" className="w-full border-b border-gray-200 py-4 outline-none focus:border-black bg-transparent" required />
+            <input type="email" placeholder="Email" className="w-full border-b border-gray-200 py-4 outline-none focus:border-black bg-transparent" required />
+            <textarea placeholder="Message" rows={4} className="w-full border-b border-gray-200 py-4 outline-none focus:border-black bg-transparent italic" required />
+            <button type="submit" disabled={isSubmitting} className="w-full bg-black text-white py-6 uppercase text-[10px] tracking-[0.5em] font-bold shadow-xl">{isSubmitting ? <Loader2 className="animate-spin w-4 h-4 mx-auto" /> : 'Submit Inquiry'}</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function PlaceholderPage({ title, desc }) {
+  return (
+    <div className="pt-48 pb-24 px-8 max-w-4xl mx-auto min-h-[80vh] flex flex-col items-center justify-center text-center animate-in zoom-in-95 duration-1000 text-black">
+      <h1 className="text-6xl md:text-8xl serif mb-8 tracking-tighter opacity-10">{title}</h1>
+      <p className="text-gray-400 italic font-serif text-2xl font-light leading-relaxed max-w-xl">"{desc}"</p>
+    </div>
+  );
+}
+
+function AIStylistModal({ isOpen, onClose, addToCart }) {
+  const [input, setInput] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState(null);
+  if (!isOpen) return null;
+  const handleAsk = async (e) => {
+    e.preventDefault(); if (!input.trim()) return; setLoading(true); setResult(null);
+    const apiKey = "";
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+    const system = `You are Vanguard Fashion's elite AI Fashion Stylist. Catalog: ${JSON.stringify(PRODUCTS.map(p => ({id: p.id, name: p.name, category: p.category}))) }. Recommend 2-3 items. Respond in JSON: { "stylistNote": "...", "recommendedIds": [id1, id2] }`;
+    try {
+      const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents: [{ parts: [{ text: input }] }], systemInstruction: { parts: [{ text: system }] }, generationConfig: { responseMimeType: "application/json" } }) });
+      const data = await res.json(); setResult(JSON.parse(data.candidates?.[0]?.content?.parts?.[0]?.text));
+    } catch (err) { console.error(err); } finally { setLoading(false); }
+  };
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+      <div className="absolute inset-0 bg-black/70 backdrop-blur-md animate-in fade-in duration-700" onClick={onClose}></div>
+      <div className="relative bg-white w-full max-w-2xl max-h-[90vh] overflow-y-auto p-12 shadow-[0_0_100px_rgba(0,0,0,0.5)] text-black animate-in zoom-in-95 duration-500">
+        <div className="flex justify-between mb-12"><h2 className="serif text-3xl flex items-center gap-3"><Sparkles className="w-6 h-6 text-amber-500" /> AI Stylist</h2><X className="cursor-pointer hover:rotate-90 transition-transform opacity-30 hover:opacity-100" onClick={onClose} /></div>
+        <form onSubmit={handleAsk} className="space-y-6 mb-16">
+          <textarea className="w-full border-b border-gray-100 p-4 text-lg outline-none focus:border-black transition-all bg-zinc-50/50 min-h-[140px] font-light italic" placeholder="Describe your mood, destination, or silhouette..." value={input} onChange={e => setInput(e.target.value)} />
+          <button type="submit" disabled={loading} className="w-full bg-black text-white py-6 uppercase text-[10px] tracking-[0.5em] font-bold hover:bg-zinc-800 disabled:opacity-30 transition-all flex items-center justify-center gap-4 group">{loading ? <Loader2 className="animate-spin w-5 h-5" /> : 'Curate Look'}</button>
+        </form>
+        {result && (
+          <div className="animate-in slide-in-from-bottom-8 duration-700">
+            <p className="text-lg italic font-serif mb-10 border-l-2 pl-6 border-amber-200 leading-relaxed text-gray-700">"{result.stylistNote}"</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">{PRODUCTS.filter(p => result.recommendedIds.includes(p.id)).map(p => (<div key={p.id} className="group cursor-pointer"><div className="aspect-[3/4] bg-zinc-50 overflow-hidden mb-4 shadow-sm"><img src={p.image} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" alt={p.name} /></div><div className="flex justify-between items-start text-black"><p className="text-[11px] font-bold uppercase tracking-widest">{p.name}</p><button onClick={() => { addToCart(p); onClose(); }} className="text-[9px] uppercase tracking-widest border-b border-black pb-1 hover:opacity-40 transition-opacity font-bold">Add</button></div></div>))}</div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function SearchOverlay({ isOpen, onClose, addToCart }) {
+  const [query, setQuery] = useState('');
+
+  useEffect(() => {
+    if (!isOpen) {
+      setTimeout(() => setQuery(''), 500);
+    }
+  }, [isOpen]);
+
+  if (!isOpen && !query) return null; 
+
+  const results = query.trim() === '' ? [] : PRODUCTS.filter(p =>
+    p.name.toLowerCase().includes(query.toLowerCase()) ||
+    p.category.toLowerCase().includes(query.toLowerCase())
+  );
+
+  return (
+    <>
+      <div className={`fixed inset-0 z-[120] bg-black/60 backdrop-blur-md transition-opacity duration-700 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} onClick={onClose}></div>
+      <div className={`fixed top-0 left-0 w-full h-[85vh] bg-white z-[130] shadow-2xl flex flex-col transform transition-transform duration-700 ease-in-out ${isOpen ? 'translate-y-0' : '-translate-y-full'}`}>
+        <div className="px-8 md:px-16 py-12 flex justify-between items-center border-b border-gray-100">
+          <div className="flex items-center gap-6 w-full max-w-4xl mx-auto animate-in slide-in-from-top-4 duration-700 delay-300 fill-mode-both">
+            <Search className="w-8 h-8 text-gray-300" />
+            <input
+              autoFocus
+              type="text"
+              placeholder="Search the collection..."
+              className="w-full text-3xl md:text-5xl serif outline-none placeholder:text-gray-200 text-black bg-transparent"
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+            />
+          </div>
+          <X className="cursor-pointer w-8 h-8 text-black opacity-30 hover:opacity-100 hover:rotate-90 transition-all duration-500" onClick={onClose} />
+        </div>
+        
+        <div className="flex-1 overflow-y-auto p-8 md:p-16 text-black">
+          <div className="max-w-7xl mx-auto">
+            {query.trim() && results.length === 0 && (
+              <div className="flex flex-col items-center justify-center h-48 animate-in fade-in duration-500">
+                <Search className="w-12 h-12 stroke-[0.5px] text-gray-300 mb-6" />
+                <p className="text-center text-gray-400 uppercase tracking-widest text-[10px]">No results found for "{query}"</p>
+              </div>
+            )}
+            
+            {results.length > 0 && (
+              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-x-8 gap-y-16">
+                {results.map((product, idx) => (
+                  <div key={product.id} className="group cursor-pointer animate-in fade-in slide-in-from-bottom-8 duration-700" style={{ animationDelay: `${idx * 50}ms` }}>
+                    <div className="aspect-[3/4] overflow-hidden bg-zinc-50 mb-6 shadow-sm">
+                      <img 
+                        src={product.image} 
+                        alt={product.name} 
+                        className="w-full h-full object-cover grayscale-[30%] group-hover:grayscale-0 transition-all duration-700 group-hover:scale-105" 
+                      />
+                    </div>
+                    <div className="flex flex-col items-start text-black">
+                      <span className="text-[8px] text-gray-400 font-bold uppercase tracking-[0.2em] block mb-2">{product.category}</span>
+                      <h3 className="text-xs font-medium tracking-tight group-hover:text-gray-500 transition-colors leading-tight mb-2 truncate w-full">{product.name}</h3>
+                      <div className="flex justify-between items-center w-full">
+                        <span className="text-[10px] font-semibold tabular-nums">₹{product.price.toLocaleString('en-IN')}</span>
+                        <button onClick={(e) => { e.stopPropagation(); addToCart(product); onClose(); }} className="text-[8px] uppercase tracking-widest border-b border-black pb-1 hover:opacity-40 transition-opacity font-bold">Add</button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+function MobileMenu({ isOpen, onClose, setCurrentView, setIsStylistOpen, handleLogout }) {
+  return (
+    <>
+      <div className={`fixed inset-0 z-[100] bg-black/40 backdrop-blur-md transition-opacity duration-700 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} onClick={onClose}></div>
+      <div className={`fixed top-0 left-0 h-full w-[85%] max-w-[400px] bg-white z-[110] shadow-2xl flex flex-col p-12 text-black transform transition-transform duration-700 ease-in-out ${isOpen ? 'translate-x-0 mobile-open' : '-translate-x-full'}`}>
+        <div className="flex justify-between items-center mb-24"><h2 className="serif text-2xl tracking-[0.3em] uppercase">Vanguard Fashion</h2><X className="cursor-pointer hover:rotate-90 transition-transform w-6 h-6" onClick={onClose} /></div>
+        <div className="flex flex-col gap-12">{['Home', 'Shop', 'Collections', 'Editorial', 'FAQ', 'Contact'].map((v, i) => (<button key={v} onClick={() => { setCurrentView(v.toLowerCase()); onClose(); }} className="mobile-link-reveal text-left text-3xl serif tracking-tight hover:italic hover:translate-x-4 transition-all" style={{ transitionDelay: `${i * 100}ms` }}>{v}</button>))}
+          <div className="mobile-link-reveal h-px bg-gray-100 my-4" style={{ transitionDelay: '600ms' }}></div>
+          <button onClick={() => { setIsStylistOpen(true); onClose(); }} className="mobile-link-reveal text-left text-xs uppercase tracking-[0.4em] text-amber-600 flex items-center gap-4 font-bold" style={{ transitionDelay: '700ms' }}><Sparkles className="w-5 h-5" /> AI Stylist</button>
+          <button onClick={() => { setCurrentView('profile'); onClose(); }} className="mobile-link-reveal text-left text-xs uppercase tracking-[0.4em] flex items-center gap-4 font-bold opacity-30 hover:opacity-100 transition-opacity" style={{ transitionDelay: '800ms' }}><User className="w-5 h-5" /> Member Account</button>
+          <button onClick={() => { handleLogout(); onClose(); }} className="mobile-link-reveal text-left text-xs uppercase tracking-[0.4em] flex items-center gap-4 font-bold opacity-30 hover:opacity-100 transition-opacity hover:text-red-500" style={{ transitionDelay: '900ms' }}><LogOut className="w-5 h-5" /> Logout</button>
+        </div>
+      </div>
+    </>
+  );
+}
+
+function CartDrawer({ isOpen, onClose, cart, removeFromCart, showToast }) {
+  return (
+    <>
+      <div className={`fixed inset-0 bg-black/40 backdrop-blur-md z-[60] transition-opacity duration-700 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} onClick={onClose}></div>
+      <div className={`fixed top-0 right-0 h-full w-full md:w-[460px] bg-white z-[70] shadow-2xl transition-transform duration-1000 ease-in-out ${isOpen ? 'translate-x-0' : 'translate-x-full'} flex flex-col text-black`}>
+        <div className="p-10 border-b flex justify-between items-center"><h2 className="serif text-2xl tracking-widest uppercase">Your Bag ({cart.length})</h2><X className="cursor-pointer hover:rotate-90 transition-transform opacity-30 hover:opacity-100 w-6 h-6" onClick={onClose} /></div>
+        <div className="flex-1 overflow-y-auto p-10 space-y-10">{cart.length === 0 ? (<div className="h-full flex flex-col items-center justify-center text-gray-300 gap-6 opacity-40"><ShoppingBag className="w-16 h-16 stroke-[0.5px]" /><p className="uppercase text-[10px] tracking-[0.5em] font-medium">The bag is empty</p></div>) : (cart.map((item, idx) => (<div key={idx} className="flex gap-8 items-center animate-in fade-in slide-in-from-right-8 duration-700" style={{ animationDelay: `${idx * 100}ms` }}><img src={item.image} className="w-24 h-32 object-cover shadow-sm" alt={item.name} /><div className="flex-1"><p className="text-[11px] font-bold uppercase tracking-widest mb-2 leading-tight">{item.name}</p><p className="text-sm font-light text-gray-400 tabular-nums">₹{item.price.toLocaleString('en-IN')}</p></div><button onClick={() => removeFromCart(idx)} className="text-[9px] uppercase tracking-widest underline opacity-20 hover:opacity-100 transition-opacity font-bold">Remove</button></div>)))}</div>
+        <div className="p-10 border-t bg-zinc-50 shadow-[0_-10px_40px_rgba(0,0,0,0.02)]"><div className="flex justify-between mb-8"><span className="uppercase text-[10px] tracking-[0.4em] text-gray-400 font-bold">Est. Total</span><span className="font-bold tracking-widest tabular-nums text-lg">₹{cart.reduce((s, i) => s + i.price, 0).toLocaleString('en-IN')}</span></div><button onClick={() => { showToast('Secure Checkout Initiated.'); onClose(); }} className="w-full bg-black text-white py-6 uppercase text-[10px] tracking-[0.5em] font-bold hover:bg-zinc-800 transition-all shadow-xl active:scale-[0.98]">Proceed to Payment</button></div>
+      </div>
+    </>
+  );
+}
+
+function ThreeDBackground() {
+  const mountRef = useRef(null);
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
+    script.async = true;
+    script.onload = () => {
+      if (!mountRef.current || !window.THREE) return;
+      const THREE = window.THREE;
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+      camera.position.z = 100;
+      const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      mountRef.current.appendChild(renderer.domElement);
+      const geometry = new THREE.BufferGeometry();
+      const pos = new Float32Array(2500 * 3);
+      for(let i=0; i<2500*3; i++) pos[i] = (Math.random()-0.5)*400;
+      geometry.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+      const points = new THREE.Points(geometry, new THREE.PointsMaterial({ size: 1.2, color: 0xffffff, transparent: true, opacity: 0.25, blending: THREE.AdditiveBlending }));
+      scene.add(points);
+      const animate = () => { 
+        requestAnimationFrame(animate); 
+        points.rotation.y += 0.0008; 
+        points.rotation.x += 0.0003; 
+        renderer.render(scene, camera); 
+      };
+      animate();
+      const handleResize = () => { 
+        camera.aspect = window.innerWidth / window.innerHeight; 
+        camera.updateProjectionMatrix(); 
+        renderer.setSize(window.innerWidth, window.innerHeight); 
+      };
+      window.addEventListener('resize', handleResize);
+    };
+    document.head.appendChild(script);
+  }, []);
+  return <div ref={mountRef} className="absolute inset-0 z-0 pointer-events-none opacity-60"></div>;
+}
